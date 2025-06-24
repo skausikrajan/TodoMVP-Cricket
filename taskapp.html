@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TodoMVP-Cricket</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #001f3f, #003366);
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      color: orange;
+    }
+    .section {
+      background: #003366;
+      margin-bottom: 20px;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
+    }
+    .label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      background-color: orange;
+      border: none;
+      color: white;
+      font-size: 1.2em;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .summary, .scoresheet {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      background-color: #002244;
+      border-radius: 10px;
+    }
+    .animation-container {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .shot-animation {
+      width: 300px;
+      height: 300px;
+      margin: 0 auto;
+      background-size: cover;
+      background-repeat: no-repeat;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>TodoMVP-Cricket</h1>
+
+    <div class="section summary">
+      <div>Wickets Remaining: <span id="wickets">7/10</span></div>
+      <div>Over Progress: <span id="overProgress">12/20</span></div>
+    </div>
+
+    <div class="section">
+      <h2>Game Plan</h2>
+      <label class="label">New Delivery</label>
+      <input type="text" id="taskName" placeholder="Ready to take a shot?" />
+
+      <label class="label">Difficulty</label>
+      <select id="difficulty" onchange="updateShots()">
+        <option value="Easy">Easy (1 Run)</option>
+        <option value="Intermediate">Intermediate (2 Runs)</option>
+        <option value="Hard">Hard (4 Runs)</option>
+        <option value="Expert">Expert (6 Runs)</option>
+      </select>
+
+      <label class="label">Shot Type</label>
+      <select id="shotType"></select>
+
+      <label class="label">Due Date</label>
+      <input type="date" id="dueDate" />
+
+      <label class="label">Estimated Time</label>
+      <select id="hours"></select>
+      <select id="minutes"></select>
+
+      <label class="label">Notes</label>
+      <textarea id="notes" placeholder="Add your commentary here..."></textarea>
+
+      <button onclick="takeStrike()">Take Strike</button>
+    </div>
+
+    <div class="section scoresheet">
+      <div>Total Runs: <span id="totalRunsDisplay">0</span></div>
+      <div>Last Task: <span id="lastTask">None</span></div>
+    </div>
+
+    <div class="animation-container">
+      <div id="shotAnimation" class="shot-animation"></div>
+    </div>
+  </div>
+
+  <script>
+    const shotMap = {
+      Easy: ["Forward Defense", "Backfoot Defense", "Tap Off Side"],
+      Intermediate: ["Cut Shot", "Leg Glance", "Sweep Shot"],
+      Hard: ["Cover Drive", "Upper Cut", "Lofted Drive"],
+      Expert: ["Pull Shot", "Hook Shot", "Scoop Shot", "Ramp Shot", "Helicopter Shot", "Slog Shot", "No-look Shot"]
+    };
+
+    const shotImages = {
+      "Forward Defense": "https://media.giphy.com/media/qv9wZpZpIInXK/giphy.gif",
+      "Backfoot Defense": "https://media.giphy.com/media/U7hNL1uMbw4JrCcfHp/giphy.gif",
+      "Tap Off Side": "https://media.giphy.com/media/Lv4cBLslLwU4c/giphy.gif",
+      "Cut Shot": "https://media.giphy.com/media/VuEIvNDPRLwzu/giphy.gif",
+      "Leg Glance": "https://media.giphy.com/media/VbnUQpnihPSIgIXuZv/giphy.gif",
+      "Sweep Shot": "https://media.giphy.com/media/l0MYzZxdVQE6G9eyY/giphy.gif",
+      "Cover Drive": "https://media.giphy.com/media/QZk69wU2g5sfe/giphy.gif",
+      "Upper Cut": "https://media.giphy.com/media/3ov9jP9VXxtRZa9jWM/giphy.gif",
+      "Lofted Drive": "https://media.giphy.com/media/l0MYFZWN6iE5Apm7q/giphy.gif",
+      "Pull Shot": "https://media.giphy.com/media/MhHXeM4aNWd0Z4Vx2h/giphy.gif",
+      "Hook Shot": "https://media.giphy.com/media/10LKovKon8DENq/giphy.gif",
+      "Scoop Shot": "https://media.giphy.com/media/xUA7aZeLE2e0P7ZnzK/giphy.gif",
+      "Ramp Shot": "https://media.giphy.com/media/l41YlVlGqRjXqO7Pi/giphy.gif",
+      "Helicopter Shot": "https://media.giphy.com/media/2gG6PmpOZ8Ivq/giphy.gif",
+      "Slog Shot": "https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif",
+      "No-look Shot": "https://media.giphy.com/media/xUOxfjsW8w1B6Z8WAg/giphy.gif"
+    };
+
+    let tasks = [];
+    let totalRuns = 0;
+
+    window.onload = () => {
+      const hourSel = document.getElementById("hours");
+      const minSel = document.getElementById("minutes");
+
+      for (let h = 0; h <= 24; h++) {
+        const opt = document.createElement("option");
+        opt.value = h;
+        opt.textContent = `${h} Hour${h !== 1 ? "s" : ""}`;
+        hourSel.appendChild(opt);
+      }
+
+      for (let m = 0; m <= 59; m++) {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = `${m} Minute${m !== 1 ? "s" : ""}`;
+        minSel.appendChild(opt);
+      }
+
+      // Adjust 60 minutes to 1 hour
+      minSel.addEventListener("change", () => {
+        const minutes = parseInt(minSel.value);
+        let hours = parseInt(hourSel.value);
+        if (minutes === 60) {
+          if (hours < 24) {
+            hourSel.value = hours + 1;
+            minSel.value = 0;
+          } else {
+            alert("Maximum allowed duration is 24 hours. Cannot add more.");
+            minSel.value = 59;
+          }
+        }
+      });
+
+      updateShots();
+    };
+
+    function updateShots() {
+      const difficulty = document.getElementById('difficulty').value;
+      const shotTypeSelect = document.getElementById('shotType');
+      shotTypeSelect.innerHTML = "";
+      shotMap[difficulty].forEach(shot => {
+        const opt = document.createElement('option');
+        opt.value = shot;
+        opt.textContent = shot;
+        shotTypeSelect.appendChild(opt);
+      });
+    }
+
+    function getRuns(difficulty) {
+      return { "Easy": 1, "Intermediate": 2, "Hard": 4, "Expert": 6 }[difficulty];
+    }
+
+    function updateScore(difficulty, success) {
+      const runValue = getRuns(difficulty);
+      totalRuns += success ? runValue : -runValue;
+      document.getElementById("totalRunsDisplay").textContent = totalRuns;
+    }
+
+    function playShotAnimation(shotType) {
+      const animation = document.getElementById("shotAnimation");
+      animation.style.backgroundImage = `url(${shotImages[shotType]})`;
+      animation.style.display = 'block';
+    }
+
+    function takeStrike() {
+      const taskName = document.getElementById("taskName").value;
+      const difficulty = document.getElementById("difficulty").value;
+      const hours = parseInt(document.getElementById("hours").value);
+      const minutes = parseInt(document.getElementById("minutes").value);
+      const shot = document.getElementById("shotType").value;
+      const notes = document.getElementById("notes").value;
+
+      const deadline = new Date();
+      deadline.setHours(deadline.getHours() + hours);
+      deadline.setMinutes(deadline.getMinutes() + minutes);
+
+      tasks.push({ taskName, difficulty, shot, deadline, completed: false });
+      playShotAnimation(shot);
+      document.getElementById("lastTask").textContent = taskName;
+
+      setTimeout(() => checkTaskDeadline(taskName), (hours * 60 + minutes) * 60000);
+    }
+
+    function checkTaskDeadline(taskName) {
+      const task = tasks.find(t => t.taskName === taskName);
+      if (task && !task.completed) {
+        updateScore(task.difficulty, false);
+        alert(`⏰ Time's up! You lost ${getRuns(task.difficulty)} runs for "${taskName}"`);
+      }
+    }
+
+    function markAsCompleted(taskName) {
+      const task = tasks.find(t => t.taskName === taskName);
+      if (task) {
+        task.completed = true;
+        updateScore(task.difficulty, true);
+        alert(`🏏 Nice shot! You scored ${getRuns(task.difficulty)} runs.`);
+      }
+    }
+  </script>
+</body>
+</html>
