@@ -41,16 +41,15 @@
       border: none;
     }
     button {
-      width: 100%;
-      padding: 15px;
+      padding: 10px 15px;
       background-color: orange;
       border: none;
       color: white;
-      font-size: 1.2em;
+      font-size: 1em;
       font-weight: bold;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      margin-top: 20px;
+      margin-top: 10px;
     }
     .summary, .scoresheet {
       display: flex;
@@ -70,6 +69,23 @@
       background-size: cover;
       background-repeat: no-repeat;
       display: none;
+    }
+    .task-list {
+      margin-top: 20px;
+    }
+    .task-item {
+      background-color: #002244;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 10px;
+    }
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .status {
+      font-weight: bold;
     }
   </style>
 </head>
@@ -109,6 +125,11 @@
       <textarea id="notes" placeholder="Add your commentary here..."></textarea>
 
       <button onclick="takeStrike()">Take Strike</button>
+
+      <div class="task-list" id="taskList">
+        <h3>Live Task Tracker</h3>
+        <!-- Tasks will be dynamically added here -->
+      </div>
     </div>
 
     <div class="section scoresheet">
@@ -169,21 +190,6 @@
         minSel.appendChild(opt);
       }
 
-      // Adjust 60 minutes to 1 hour
-      minSel.addEventListener("change", () => {
-        const minutes = parseInt(minSel.value);
-        let hours = parseInt(hourSel.value);
-        if (minutes === 60) {
-          if (hours < 24) {
-            hourSel.value = hours + 1;
-            minSel.value = 0;
-          } else {
-            alert("Maximum allowed duration is 24 hours. Cannot add more.");
-            minSel.value = 59;
-          }
-        }
-      });
-
       updateShots();
     };
 
@@ -223,32 +229,71 @@
       const shot = document.getElementById("shotType").value;
       const notes = document.getElementById("notes").value;
 
-      const deadline = new Date();
-      deadline.setHours(deadline.getHours() + hours);
-      deadline.setMinutes(deadline.getMinutes() + minutes);
+      const now = new Date();
+      const deadline = new Date(now.getTime() + (hours * 60 + minutes) * 60000);
 
-      tasks.push({ taskName, difficulty, shot, deadline, completed: false });
-      playShotAnimation(shot);
+      const task = { taskName, difficulty, shot, deadline, completed: false, failed: false, id: Date.now() };
+      tasks.push(task);
       document.getElementById("lastTask").textContent = taskName;
-
-      setTimeout(() => checkTaskDeadline(taskName), (hours * 60 + minutes) * 60000);
+      playShotAnimation(shot);
+      renderTasks();
+      countdown(task);
     }
 
-    function checkTaskDeadline(taskName) {
-      const task = tasks.find(t => t.taskName === taskName);
-      if (task && !task.completed) {
-        updateScore(task.difficulty, false);
-        alert(`⏰ Time's up! You lost ${getRuns(task.difficulty)} runs for "${taskName}"`);
-      }
+    function countdown(task) {
+      const interval = setInterval(() => {
+        const now = new Date();
+        const timeLeft = task.deadline - now;
+        const elem = document.getElementById(`status-${task.id}`);
+        const completeBtn = document.getElementById(`btn-${task.id}`);
+
+        if (task.completed || task.failed) {
+          clearInterval(interval);
+          return;
+        }
+
+        if (timeLeft <= 0) {
+          task.failed = true;
+          updateScore(task.difficulty, false);
+          elem.textContent = "❌ Failed";
+          if (completeBtn) completeBtn.remove();
+          alert(`⏰ Time's up! You lost ${getRuns(task.difficulty)} runs for "${task.taskName}"`);
+          clearInterval(interval);
+          return;
+        }
+
+        const mins = Math.floor(timeLeft / 60000);
+        const secs = Math.floor((timeLeft % 60000) / 1000);
+        elem.textContent = `⏳ In Progress - ${mins}m ${secs}s left`;
+      }, 1000);
     }
 
-    function markAsCompleted(taskName) {
-      const task = tasks.find(t => t.taskName === taskName);
-      if (task) {
+    function markAsCompleted(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (task && !task.completed && !task.failed) {
         task.completed = true;
         updateScore(task.difficulty, true);
+        document.getElementById(`status-${taskId}`).textContent = "✅ Completed";
+        document.getElementById(`btn-${taskId}`).remove();
         alert(`🏏 Nice shot! You scored ${getRuns(task.difficulty)} runs.`);
       }
+    }
+
+    function renderTasks() {
+      const taskList = document.getElementById("taskList");
+      taskList.innerHTML = "<h3>Live Task Tracker</h3>";
+      tasks.forEach(task => {
+        const div = document.createElement("div");
+        div.className = "task-item";
+        div.innerHTML = `
+          <div class="task-header">
+            <span><strong>${task.taskName}</strong> (${task.shot})</span>
+            <span class="status" id="status-${task.id}">⏳ In Progress</span>
+          </div>
+          <button id="btn-${task.id}" onclick="markAsCompleted(${task.id})">Complete</button>
+        `;
+        taskList.appendChild(div);
+      });
     }
   </script>
 </body>
