@@ -6,32 +6,62 @@
   <title>TodoMVP-Cricket</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #001f3f, #003366);
-      color: white;
       margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://cdn.pixabay.com/photo/2016/06/03/13/20/stadium-1436932_1280.jpg') no-repeat center center/cover;
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
+    .overlay {
+      background: rgba(0, 0, 0, 0.8);
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      z-index: 1;
     }
-    h1, h2 {
+    .center-box, .game-section {
+      position: relative;
+      z-index: 2;
       text-align: center;
-      color: orange;
-    }
-    .section {
-      background: #003366;
-      margin-bottom: 20px;
       padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(255, 140, 0, 0.4);
     }
-    .label {
+    .dialog {
+      background: #002244;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px orange;
+      animation: fadeIn 0.8s ease-in-out;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      background: orange;
+      border: none;
+      border-radius: 8px;
       font-weight: bold;
-      display: block;
-      margin-top: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      color: white;
+    }
+    .game-section {
+      display: none;
+      background: rgba(0,0,0,0.9);
+      padding: 20px;
+    }
+    .task-history {
+      text-align: left;
+      max-width: 600px;
+      margin: 20px auto;
+      background: #003366;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
     input, select, textarea {
       width: 100%;
@@ -40,250 +70,187 @@
       border-radius: 8px;
       border: none;
     }
-    button {
-      padding: 10px 15px;
-      background-color: orange;
-      border: none;
-      color: white;
-      font-size: 1em;
+    label {
       font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
+      display: block;
       margin-top: 10px;
     }
-    .summary, .scoresheet {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px;
-      background-color: #002244;
-      border-radius: 10px;
+    .coin {
+      font-size: 80px;
+      animation: flip 1s ease-in-out;
     }
-    .animation-container {
-      margin-top: 20px;
-      text-align: center;
-    }
-    .shot-animation {
-      width: 300px;
-      height: 300px;
-      margin: 0 auto;
-      background-size: cover;
-      background-repeat: no-repeat;
-      display: none;
-    }
-    .task-list, .task-history {
-      margin-top: 20px;
-    }
-    .task-item {
-      background-color: #002244;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 10px;
-    }
-    .task-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .status {
-      font-weight: bold;
+    @keyframes flip {
+      0% { transform: rotateY(0); }
+      100% { transform: rotateY(1800deg); }
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>TodoMVP-Cricket</h1>
+  <div class="overlay"></div>
+  <div class="center-box">
+    <div id="tossDialog" class="dialog">
+      <h2>🏏 Welcome to TodoMVP Cricket!</h2>
+      <p>Choose your toss call:</p>
+      <button onclick="startCoinFlip('Heads')">Heads</button>
+      <button onclick="startCoinFlip('Tails')">Tails</button>
+      <div id="coin" class="coin" style="margin-top: 20px; font-size: 100px;">🪙</div>
+    </div>
 
-  <div class="section summary">
-    <div>Wickets Remaining: <span id="wickets">10/10</span></div>
-    <div>Over Progress: <span id="overProgress">12/20</span></div>
-  </div>
-
-  <div class="section">
-    <h2>Game Plan</h2>
-    <label class="label">New Delivery</label>
-    <input type="text" id="taskName" placeholder="Ready to take a shot?" />
-
-    <label class="label">Difficulty</label>
-    <select id="difficulty" onchange="updateShots()">
-      <option value="Easy">Easy (1 Run)</option>
-      <option value="Intermediate">Intermediate (2 Runs)</option>
-      <option value="Hard">Hard (4 Runs)</option>
-      <option value="Expert">Expert (6 Runs)</option>
-    </select>
-
-    <label class="label">Shot Type</label>
-    <select id="shotType"></select>
-
-    <label class="label">Due Date</label>
-    <input type="date" id="dueDate" />
-
-    <label class="label">Estimated Time</label>
-    <input type="time" id="targetTime" />
-
-    <label class="label">Notes</label>
-    <textarea id="notes" placeholder="Add your commentary here..."></textarea>
-
-    <button onclick="takeStrike()">Take Strike</button>
-
-    <div class="task-list" id="taskList">
-      <h3>Live Task Tracker</h3>
+    <div id="resultDialog" class="dialog" style="display:none;">
+      <h2 id="tossResultText"></h2>
+      <p id="batBowlText" style="display:none;">Choose to Bat or Bowl:</p>
+      <div id="batBowlBtns" style="display:none;">
+        <button onclick="chooseRole('Batting')">Bat</button>
+        <button onclick="chooseRole('Bowling')">Bowl</button>
+      </div>
     </div>
   </div>
 
-  <div class="section scoresheet">
-    <div>Total Runs: <span id="totalRunsDisplay">0</span></div>
-    <div>Last Task: <span id="lastTask">None</span></div>
+  <div id="gameSection" class="game-section">
+    <h2>🎯 Strategic Play</h2>
+    <div style="max-width:600px;margin:auto;">
+      <label>New Delivery</label>
+      <input type="text" id="taskName" placeholder="e.g. Finish Python project">
+
+      <label>Difficulty</label>
+      <select id="difficulty" onchange="updateShots()">
+        <option value="Easy">Easy (1 Run)</option>
+        <option value="Intermediate">Intermediate (2 Runs)</option>
+        <option value="Hard">Hard (4 Runs)</option>
+        <option value="Expert">Expert (6 Runs)</option>
+      </select>
+
+      <label>Shot Type</label>
+      <select id="shotType"></select>
+
+      <label>Due Date</label>
+      <input type="date" id="dueDate">
+
+      <label>Estimated Time (HH:MM)</label>
+      <input type="time" id="targetTime">
+
+      <label>Notes</label>
+      <textarea id="notes" placeholder="Any extra info..."></textarea>
+
+      <button onclick="takeStrike()">Take Strike</button>
+    </div>
+
+    <div class="task-history" id="taskHistory">
+      <h3>📜 Task History</h3>
+      <ul id="historyList"></ul>
+    </div>
   </div>
 
-  <div class="animation-container">
-    <div id="shotAnimation" class="shot-animation"></div>
-  </div>
+  <script>
+    const shots = {
+      Easy: ["Forward Defense", "Backfoot Defense", "Top Off Side", "Top Leg Side", "Dab Shot", "French Cut"],
+      Intermediate: ["Hit", "Cut Shot", "Sweep Shot", "Paddle Sweep", "Leg Glance", "Backfoot Punch", "Late Cut"],
+      Hard: ["Straight Drive", "Cover Drive", "Square Drive", "On Drive", "Off Drive", "Upper Cut", "Reverse Sweep", "Lofted Drive", "Switch Hit", "Slog Sweep", "Periscope"],
+      Expert: ["Pull Shot", "Hook Shot", "Scoop Shot", "Ramp Shot", "Helicopter Shot", "Slog Shot", "No-look Shot"]
+    };
 
-  <div class="section task-history" id="taskHistory">
-    <h2>📜 Task History</h2>
-  </div>
-</div>
+    let tasks = [];
+    let userCall = '', taskId = 0;
 
-<script>
-const shotMap = {
-  Easy: ["Forward Defense", "Backfoot Defense", "Tap Off Side"],
-  Intermediate: ["Cut Shot", "Leg Glance", "Sweep Shot"],
-  Hard: ["Cover Drive", "Upper Cut", "Lofted Drive"],
-  Expert: ["Pull Shot", "Hook Shot", "Scoop Shot", "Ramp Shot", "Helicopter Shot", "Slog Shot", "No-look Shot"]
-};
+    function startCoinFlip(call) {
+      userCall = call;
+      const coinEl = document.getElementById('coin');
+      coinEl.innerText = '🪙';
+      coinEl.style.animation = 'flip 2s ease-in-out';
 
-const shotImages = {
-  "Helicopter Shot": "https://media.giphy.com/media/2gG6PmpOZ8Ivq/giphy.gif"
-};
+      setTimeout(() => {
+        const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
+        coinEl.innerText = result === 'Heads' ? '🙂' : '🐍'; // Visual result
+        coinEl.style.animation = '';
 
-let tasks = [];
-let totalRuns = 0;
-let wicketsLeft = 10;
+        setTimeout(() => {
+          document.getElementById('tossDialog').style.display = 'none';
+          document.getElementById('resultDialog').style.display = 'block';
+          const resultText = document.getElementById('tossResultText');
 
-function updateShots() {
-  const difficulty = document.getElementById("difficulty").value;
-  const shotTypeSelect = document.getElementById("shotType");
-  shotTypeSelect.innerHTML = "";
-  shotMap[difficulty].forEach(shot => {
-    const opt = document.createElement("option");
-    opt.value = shot;
-    opt.textContent = shot;
-    shotTypeSelect.appendChild(opt);
-  });
-}
-
-function getRuns(difficulty) {
-  return { Easy: 1, Intermediate: 2, Hard: 4, Expert: 6 }[difficulty];
-}
-
-function updateScore(difficulty, success) {
-  const runValue = getRuns(difficulty);
-  totalRuns += success ? runValue : -runValue;
-  document.getElementById("totalRunsDisplay").textContent = totalRuns;
-}
-
-function playShotAnimation(shotType) {
-  const animation = document.getElementById("shotAnimation");
-  animation.style.backgroundImage = `url(${shotImages[shotType] || ''})`;
-  animation.style.display = 'block';
-}
-
-function takeStrike() {
-  const taskName = document.getElementById("taskName").value;
-  const difficulty = document.getElementById("difficulty").value;
-  const shot = document.getElementById("shotType").value;
-  const notes = document.getElementById("notes").value;
-  const dateStr = document.getElementById("dueDate").value;
-  const timeStr = document.getElementById("targetTime").value;
-
-  if (!dateStr || !timeStr) {
-    alert("📅⏰ Please select both date and time for the deadline.");
-    return;
-  }
-
-  const [y, m, d] = dateStr.split("-").map(Number);
-  const [hour, minute] = timeStr.split(":" ).map(Number);
-  const deadline = new Date(y, m - 1, d, hour, minute, 0);
-
-  const task = { taskName, difficulty, shot, deadline, completed: false, failed: false, id: Date.now() };
-  tasks.push(task);
-  document.getElementById("lastTask").textContent = taskName;
-  playShotAnimation(shot);
-  renderTasks();
-  countdown(task);
-}
-
-function countdown(task) {
-  const interval = setInterval(() => {
-    const now = new Date();
-    const timeLeft = task.deadline - now;
-    const elem = document.getElementById(`status-${task.id}`);
-    const completeBtn = document.getElementById(`btn-${task.id}`);
-
-    if (task.completed || task.failed) {
-      clearInterval(interval);
-      return;
+          if (result === userCall) {
+            resultText.innerText = `🎉 You won the toss (${result})!`;
+            document.getElementById('batBowlText').style.display = 'block';
+            document.getElementById('batBowlBtns').style.display = 'block';
+          } else {
+            resultText.innerText = `😞 You lost the toss (${result}). Opponent chose to Bat.`;
+            setTimeout(() => {
+              alert("You're Bowling! Opponent scored 46 runs.");
+              chooseRole("Batting");
+            }, 2000);
+          }
+        }, 1000);
+      }, 2000);
     }
 
-    if (timeLeft <= 0) {
-      task.failed = true;
-      updateScore(task.difficulty, false);
-      wicketsLeft--;
-      if (wicketsLeft < 0) wicketsLeft = 0;
-      document.getElementById("wickets").textContent = `${wicketsLeft}/10`;
-      elem.textContent = "❌ Failed";
-      if (completeBtn) completeBtn.remove();
-      appendToHistory(task, "❌ Failed");
-      alert(`⏰ Time's up! You lost ${getRuns(task.difficulty)} runs for \"${task.taskName}\"`);
-      clearInterval(interval);
-      return;
+    function chooseRole(role) {
+      document.querySelector('.center-box').style.display = 'none';
+      document.getElementById('gameSection').style.display = 'block';
+      updateShots();
     }
 
-    const mins = Math.floor(timeLeft / 60000);
-    const secs = Math.floor((timeLeft % 60000) / 1000);
-    elem.textContent = `⏳ In Progress - ${mins}m ${secs}s left`;
-  }, 1000);
-}
+    function updateShots() {
+      const diff = document.getElementById("difficulty").value;
+      const shotSel = document.getElementById("shotType");
+      shotSel.innerHTML = "";
+      shots[diff].forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        shotSel.appendChild(opt);
+      });
+    }
 
-function markAsCompleted(taskId) {
-  const task = tasks.find(t => t.id === taskId);
-  if (task && !task.completed && !task.failed) {
-    task.completed = true;
-    updateScore(task.difficulty, true);
-    document.getElementById(`status-${taskId}`).textContent = "✅ Completed";
-    document.getElementById(`btn-${taskId}`).remove();
-    appendToHistory(task, "✅ Completed");
-    alert(`🏏 Nice shot! You scored ${getRuns(task.difficulty)} runs.`);
-  }
-}
+    function getRuns(level) {
+      return { Easy: 1, Intermediate: 2, Hard: 4, Expert: 6 }[level];
+    }
 
-function appendToHistory(task, result) {
-  const history = document.getElementById("taskHistory");
-  const p = document.createElement("p");
-  p.textContent = `${result} - ${task.taskName} (${task.shot}) at ${new Date().toLocaleTimeString()}`;
-  history.appendChild(p);
-  tasks = tasks.filter(t => t.id !== task.id);
-  renderTasks();
-}
+    function takeStrike() {
+      const name = document.getElementById("taskName").value;
+      const level = document.getElementById("difficulty").value;
+      const shot = document.getElementById("shotType").value;
+      const note = document.getElementById("notes").value;
+      const date = document.getElementById("dueDate").value;
+      const time = document.getElementById("targetTime").value;
 
-function renderTasks() {
-  const taskList = document.getElementById("taskList");
-  taskList.innerHTML = "<h3>Live Task Tracker</h3>";
-  tasks.forEach(task => {
-    const div = document.createElement("div");
-    div.className = "task-item";
-    div.innerHTML = `
-      <div class="task-header">
-        <span><strong>${task.taskName}</strong> (${task.shot})</span>
-        <span class="status" id="status-${task.id}">⏳ In Progress</span>
-      </div>
-      <button id="btn-${task.id}" onclick="markAsCompleted(${task.id})">Complete</button>
-    `;
-    taskList.appendChild(div);
-  });
-}
+      if (!name || !date || !time) {
+        alert("Please fill all fields.");
+        return;
+      }
 
-window.onload = updateShots;
-</script>
+      const deadline = new Date(`${date}T${time}`);
+      const now = new Date();
+      const id = ++taskId;
+
+      const li = document.createElement("li");
+      li.textContent = `📝 [${level}] ${name} (${shot}) - In Progress`;
+      li.id = `task-${id}`;
+      document.getElementById("historyList").appendChild(li);
+
+      const interval = setInterval(() => {
+        const current = new Date();
+        const taskElem = document.getElementById(`task-${id}`);
+        if (!taskElem) return clearInterval(interval);
+
+        if (current >= deadline && !taskElem.classList.contains("done")) {
+          taskElem.textContent += " ❌ Failed";
+          taskElem.classList.add("done");
+          alert(`⏰ Task failed. -${getRuns(level)} runs`);
+          clearInterval(interval);
+        }
+      }, 1000);
+
+      setTimeout(() => {
+        if (document.getElementById(`task-${id}`)) {
+          const done = confirm(`Mark "${name}" as completed?`);
+          const taskElem = document.getElementById(`task-${id}`);
+          if (done && !taskElem.classList.contains("done")) {
+            taskElem.textContent += ` ✅ Success (+${getRuns(level)} runs)`;
+            taskElem.classList.add("done");
+          }
+        }
+      }, 1000 * 60 * 60); // Prompt after 1 hour
+    }
+  </script>
 </body>
 </html>
