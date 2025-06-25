@@ -70,7 +70,7 @@
       background-repeat: no-repeat;
       display: none;
     }
-    .task-list {
+    .task-list, .task-history {
       margin-top: 20px;
     }
     .task-item {
@@ -90,211 +90,200 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>TodoMVP-Cricket</h1>
+<div class="container">
+  <h1>TodoMVP-Cricket</h1>
 
-    <div class="section summary">
-      <div>Wickets Remaining: <span id="wickets">7/10</span></div>
-      <div>Over Progress: <span id="overProgress">12/20</span></div>
-    </div>
+  <div class="section summary">
+    <div>Wickets Remaining: <span id="wickets">10/10</span></div>
+    <div>Over Progress: <span id="overProgress">12/20</span></div>
+  </div>
 
-    <div class="section">
-      <h2>Game Plan</h2>
-      <label class="label">New Delivery</label>
-      <input type="text" id="taskName" placeholder="Ready to take a shot?" />
+  <div class="section">
+    <h2>Game Plan</h2>
+    <label class="label">New Delivery</label>
+    <input type="text" id="taskName" placeholder="Ready to take a shot?" />
 
-      <label class="label">Difficulty</label>
-      <select id="difficulty" onchange="updateShots()">
-        <option value="Easy">Easy (1 Run)</option>
-        <option value="Intermediate">Intermediate (2 Runs)</option>
-        <option value="Hard">Hard (4 Runs)</option>
-        <option value="Expert">Expert (6 Runs)</option>
-      </select>
+    <label class="label">Difficulty</label>
+    <select id="difficulty" onchange="updateShots()">
+      <option value="Easy">Easy (1 Run)</option>
+      <option value="Intermediate">Intermediate (2 Runs)</option>
+      <option value="Hard">Hard (4 Runs)</option>
+      <option value="Expert">Expert (6 Runs)</option>
+    </select>
 
-      <label class="label">Shot Type</label>
-      <select id="shotType"></select>
+    <label class="label">Shot Type</label>
+    <select id="shotType"></select>
 
-      <label class="label">Due Date</label>
-      <input type="date" id="dueDate" />
+    <label class="label">Due Date</label>
+    <input type="date" id="dueDate" />
 
-      <label class="label">Estimated Time</label>
-      <select id="hours"></select>
-      <select id="minutes"></select>
+    <label class="label">Estimated Time</label>
+    <input type="time" id="targetTime" />
 
-      <label class="label">Notes</label>
-      <textarea id="notes" placeholder="Add your commentary here..."></textarea>
+    <label class="label">Notes</label>
+    <textarea id="notes" placeholder="Add your commentary here..."></textarea>
 
-      <button onclick="takeStrike()">Take Strike</button>
+    <button onclick="takeStrike()">Take Strike</button>
 
-      <div class="task-list" id="taskList">
-        <h3>Live Task Tracker</h3>
-        <!-- Tasks will be dynamically added here -->
-      </div>
-    </div>
-
-    <div class="section scoresheet">
-      <div>Total Runs: <span id="totalRunsDisplay">0</span></div>
-      <div>Last Task: <span id="lastTask">None</span></div>
-    </div>
-
-    <div class="animation-container">
-      <div id="shotAnimation" class="shot-animation"></div>
+    <div class="task-list" id="taskList">
+      <h3>Live Task Tracker</h3>
     </div>
   </div>
 
-  <script>
-    const shotMap = {
-      Easy: ["Forward Defense", "Backfoot Defense", "Tap Off Side"],
-      Intermediate: ["Cut Shot", "Leg Glance", "Sweep Shot"],
-      Hard: ["Cover Drive", "Upper Cut", "Lofted Drive"],
-      Expert: ["Pull Shot", "Hook Shot", "Scoop Shot", "Ramp Shot", "Helicopter Shot", "Slog Shot", "No-look Shot"]
-    };
+  <div class="section scoresheet">
+    <div>Total Runs: <span id="totalRunsDisplay">0</span></div>
+    <div>Last Task: <span id="lastTask">None</span></div>
+  </div>
 
-    const shotImages = {
-      "Forward Defense": "https://media.giphy.com/media/qv9wZpZpIInXK/giphy.gif",
-      "Backfoot Defense": "https://media.giphy.com/media/U7hNL1uMbw4JrCcfHp/giphy.gif",
-      "Tap Off Side": "https://media.giphy.com/media/Lv4cBLslLwU4c/giphy.gif",
-      "Cut Shot": "https://media.giphy.com/media/VuEIvNDPRLwzu/giphy.gif",
-      "Leg Glance": "https://media.giphy.com/media/VbnUQpnihPSIgIXuZv/giphy.gif",
-      "Sweep Shot": "https://media.giphy.com/media/l0MYzZxdVQE6G9eyY/giphy.gif",
-      "Cover Drive": "https://media.giphy.com/media/QZk69wU2g5sfe/giphy.gif",
-      "Upper Cut": "https://media.giphy.com/media/3ov9jP9VXxtRZa9jWM/giphy.gif",
-      "Lofted Drive": "https://media.giphy.com/media/l0MYFZWN6iE5Apm7q/giphy.gif",
-      "Pull Shot": "https://media.giphy.com/media/MhHXeM4aNWd0Z4Vx2h/giphy.gif",
-      "Hook Shot": "https://media.giphy.com/media/10LKovKon8DENq/giphy.gif",
-      "Scoop Shot": "https://media.giphy.com/media/xUA7aZeLE2e0P7ZnzK/giphy.gif",
-      "Ramp Shot": "https://media.giphy.com/media/l41YlVlGqRjXqO7Pi/giphy.gif",
-      "Helicopter Shot": "https://media.giphy.com/media/2gG6PmpOZ8Ivq/giphy.gif",
-      "Slog Shot": "https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif",
-      "No-look Shot": "https://media.giphy.com/media/xUOxfjsW8w1B6Z8WAg/giphy.gif"
-    };
+  <div class="animation-container">
+    <div id="shotAnimation" class="shot-animation"></div>
+  </div>
 
-    let tasks = [];
-    let totalRuns = 0;
+  <div class="section task-history" id="taskHistory">
+    <h2>📜 Task History</h2>
+  </div>
+</div>
 
-    window.onload = () => {
-      const hourSel = document.getElementById("hours");
-      const minSel = document.getElementById("minutes");
+<script>
+const shotMap = {
+  Easy: ["Forward Defense", "Backfoot Defense", "Tap Off Side"],
+  Intermediate: ["Cut Shot", "Leg Glance", "Sweep Shot"],
+  Hard: ["Cover Drive", "Upper Cut", "Lofted Drive"],
+  Expert: ["Pull Shot", "Hook Shot", "Scoop Shot", "Ramp Shot", "Helicopter Shot", "Slog Shot", "No-look Shot"]
+};
 
-      for (let h = 0; h <= 24; h++) {
-        const opt = document.createElement("option");
-        opt.value = h;
-        opt.textContent = `${h} Hour${h !== 1 ? "s" : ""}`;
-        hourSel.appendChild(opt);
-      }
+const shotImages = {
+  "Helicopter Shot": "https://media.giphy.com/media/2gG6PmpOZ8Ivq/giphy.gif"
+};
 
-      for (let m = 0; m <= 59; m++) {
-        const opt = document.createElement("option");
-        opt.value = m;
-        opt.textContent = `${m} Minute${m !== 1 ? "s" : ""}`;
-        minSel.appendChild(opt);
-      }
+let tasks = [];
+let totalRuns = 0;
+let wicketsLeft = 10;
 
-      updateShots();
-    };
+function updateShots() {
+  const difficulty = document.getElementById("difficulty").value;
+  const shotTypeSelect = document.getElementById("shotType");
+  shotTypeSelect.innerHTML = "";
+  shotMap[difficulty].forEach(shot => {
+    const opt = document.createElement("option");
+    opt.value = shot;
+    opt.textContent = shot;
+    shotTypeSelect.appendChild(opt);
+  });
+}
 
-    function updateShots() {
-      const difficulty = document.getElementById('difficulty').value;
-      const shotTypeSelect = document.getElementById('shotType');
-      shotTypeSelect.innerHTML = "";
-      shotMap[difficulty].forEach(shot => {
-        const opt = document.createElement('option');
-        opt.value = shot;
-        opt.textContent = shot;
-        shotTypeSelect.appendChild(opt);
-      });
+function getRuns(difficulty) {
+  return { Easy: 1, Intermediate: 2, Hard: 4, Expert: 6 }[difficulty];
+}
+
+function updateScore(difficulty, success) {
+  const runValue = getRuns(difficulty);
+  totalRuns += success ? runValue : -runValue;
+  document.getElementById("totalRunsDisplay").textContent = totalRuns;
+}
+
+function playShotAnimation(shotType) {
+  const animation = document.getElementById("shotAnimation");
+  animation.style.backgroundImage = `url(${shotImages[shotType] || ''})`;
+  animation.style.display = 'block';
+}
+
+function takeStrike() {
+  const taskName = document.getElementById("taskName").value;
+  const difficulty = document.getElementById("difficulty").value;
+  const shot = document.getElementById("shotType").value;
+  const notes = document.getElementById("notes").value;
+  const dateStr = document.getElementById("dueDate").value;
+  const timeStr = document.getElementById("targetTime").value;
+
+  if (!dateStr || !timeStr) {
+    alert("📅⏰ Please select both date and time for the deadline.");
+    return;
+  }
+
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const [hour, minute] = timeStr.split(":" ).map(Number);
+  const deadline = new Date(y, m - 1, d, hour, minute, 0);
+
+  const task = { taskName, difficulty, shot, deadline, completed: false, failed: false, id: Date.now() };
+  tasks.push(task);
+  document.getElementById("lastTask").textContent = taskName;
+  playShotAnimation(shot);
+  renderTasks();
+  countdown(task);
+}
+
+function countdown(task) {
+  const interval = setInterval(() => {
+    const now = new Date();
+    const timeLeft = task.deadline - now;
+    const elem = document.getElementById(`status-${task.id}`);
+    const completeBtn = document.getElementById(`btn-${task.id}`);
+
+    if (task.completed || task.failed) {
+      clearInterval(interval);
+      return;
     }
 
-    function getRuns(difficulty) {
-      return { "Easy": 1, "Intermediate": 2, "Hard": 4, "Expert": 6 }[difficulty];
+    if (timeLeft <= 0) {
+      task.failed = true;
+      updateScore(task.difficulty, false);
+      wicketsLeft--;
+      if (wicketsLeft < 0) wicketsLeft = 0;
+      document.getElementById("wickets").textContent = `${wicketsLeft}/10`;
+      elem.textContent = "❌ Failed";
+      if (completeBtn) completeBtn.remove();
+      appendToHistory(task, "❌ Failed");
+      alert(`⏰ Time's up! You lost ${getRuns(task.difficulty)} runs for \"${task.taskName}\"`);
+      clearInterval(interval);
+      return;
     }
 
-    function updateScore(difficulty, success) {
-      const runValue = getRuns(difficulty);
-      totalRuns += success ? runValue : -runValue;
-      document.getElementById("totalRunsDisplay").textContent = totalRuns;
-    }
+    const mins = Math.floor(timeLeft / 60000);
+    const secs = Math.floor((timeLeft % 60000) / 1000);
+    elem.textContent = `⏳ In Progress - ${mins}m ${secs}s left`;
+  }, 1000);
+}
 
-    function playShotAnimation(shotType) {
-      const animation = document.getElementById("shotAnimation");
-      animation.style.backgroundImage = `url(${shotImages[shotType]})`;
-      animation.style.display = 'block';
-    }
+function markAsCompleted(taskId) {
+  const task = tasks.find(t => t.id === taskId);
+  if (task && !task.completed && !task.failed) {
+    task.completed = true;
+    updateScore(task.difficulty, true);
+    document.getElementById(`status-${taskId}`).textContent = "✅ Completed";
+    document.getElementById(`btn-${taskId}`).remove();
+    appendToHistory(task, "✅ Completed");
+    alert(`🏏 Nice shot! You scored ${getRuns(task.difficulty)} runs.`);
+  }
+}
 
-    function takeStrike() {
-      const taskName = document.getElementById("taskName").value;
-      const difficulty = document.getElementById("difficulty").value;
-      const hours = parseInt(document.getElementById("hours").value);
-      const minutes = parseInt(document.getElementById("minutes").value);
-      const shot = document.getElementById("shotType").value;
-      const notes = document.getElementById("notes").value;
+function appendToHistory(task, result) {
+  const history = document.getElementById("taskHistory");
+  const p = document.createElement("p");
+  p.textContent = `${result} - ${task.taskName} (${task.shot}) at ${new Date().toLocaleTimeString()}`;
+  history.appendChild(p);
+  tasks = tasks.filter(t => t.id !== task.id);
+  renderTasks();
+}
 
-      const now = new Date();
-      const deadline = new Date(now.getTime() + (hours * 60 + minutes) * 60000);
+function renderTasks() {
+  const taskList = document.getElementById("taskList");
+  taskList.innerHTML = "<h3>Live Task Tracker</h3>";
+  tasks.forEach(task => {
+    const div = document.createElement("div");
+    div.className = "task-item";
+    div.innerHTML = `
+      <div class="task-header">
+        <span><strong>${task.taskName}</strong> (${task.shot})</span>
+        <span class="status" id="status-${task.id}">⏳ In Progress</span>
+      </div>
+      <button id="btn-${task.id}" onclick="markAsCompleted(${task.id})">Complete</button>
+    `;
+    taskList.appendChild(div);
+  });
+}
 
-      const task = { taskName, difficulty, shot, deadline, completed: false, failed: false, id: Date.now() };
-      tasks.push(task);
-      document.getElementById("lastTask").textContent = taskName;
-      playShotAnimation(shot);
-      renderTasks();
-      countdown(task);
-    }
-
-    function countdown(task) {
-      const interval = setInterval(() => {
-        const now = new Date();
-        const timeLeft = task.deadline - now;
-        const elem = document.getElementById(`status-${task.id}`);
-        const completeBtn = document.getElementById(`btn-${task.id}`);
-
-        if (task.completed || task.failed) {
-          clearInterval(interval);
-          return;
-        }
-
-        if (timeLeft <= 0) {
-          task.failed = true;
-          updateScore(task.difficulty, false);
-          elem.textContent = "❌ Failed";
-          if (completeBtn) completeBtn.remove();
-          alert(`⏰ Time's up! You lost ${getRuns(task.difficulty)} runs for "${task.taskName}"`);
-          clearInterval(interval);
-          return;
-        }
-
-        const mins = Math.floor(timeLeft / 60000);
-        const secs = Math.floor((timeLeft % 60000) / 1000);
-        elem.textContent = `⏳ In Progress - ${mins}m ${secs}s left`;
-      }, 1000);
-    }
-
-    function markAsCompleted(taskId) {
-      const task = tasks.find(t => t.id === taskId);
-      if (task && !task.completed && !task.failed) {
-        task.completed = true;
-        updateScore(task.difficulty, true);
-        document.getElementById(`status-${taskId}`).textContent = "✅ Completed";
-        document.getElementById(`btn-${taskId}`).remove();
-        alert(`🏏 Nice shot! You scored ${getRuns(task.difficulty)} runs.`);
-      }
-    }
-
-    function renderTasks() {
-      const taskList = document.getElementById("taskList");
-      taskList.innerHTML = "<h3>Live Task Tracker</h3>";
-      tasks.forEach(task => {
-        const div = document.createElement("div");
-        div.className = "task-item";
-        div.innerHTML = `
-          <div class="task-header">
-            <span><strong>${task.taskName}</strong> (${task.shot})</span>
-            <span class="status" id="status-${task.id}">⏳ In Progress</span>
-          </div>
-          <button id="btn-${task.id}" onclick="markAsCompleted(${task.id})">Complete</button>
-        `;
-        taskList.appendChild(div);
-      });
-    }
-  </script>
+window.onload = updateShots;
+</script>
 </body>
 </html>
