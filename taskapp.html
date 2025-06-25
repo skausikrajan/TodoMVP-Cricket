@@ -156,6 +156,7 @@
     };
 
     let taskId = 0;
+    let yourScore = 0;
 
     function startCoinFlip(call) {
       const coinEl = document.getElementById('coin');
@@ -193,11 +194,12 @@
       document.getElementById('gameSection').style.display = 'block';
       updateShots();
 
-      if (role === "Bowling" || autoScore !== null) {
-        const score = autoScore !== null ? autoScore : Math.floor(Math.random() * 71) + 30;
+      const score = autoScore !== null ? autoScore : (role === "Bowling" ? Math.floor(Math.random() * 71) + 30 : null);
+      if (score !== null) {
         document.getElementById("targetDisplay").innerHTML = `
           🎯 <b>Opponent's Score:</b> ${score} Runs<br>
-          <b>Your Target:</b> ${score + 1} Runs to Win
+          <b>Your Target:</b> ${score + 1} Runs to Win<br>
+          <b>Your Current Score:</b> <span id="yourScore">0</span> Runs
         `;
       }
     }
@@ -254,8 +256,11 @@
       const taskElem = document.getElementById(`task-${id}`);
       if (taskElem && !taskElem.classList.contains("done")) {
         taskElem.remove();
-        const text = taskElem.innerText.replace("Complete", "✅ Success");
-        addToHistory(text + ` (+${getRuns(level)} runs)`, 'success');
+        const runs = getRuns(level);
+        yourScore += runs;
+        document.getElementById("yourScore").textContent = yourScore;
+        const text = taskElem.innerText.replace("Complete", `✅ Success`);
+        addToHistory(text + ` (+${runs} runs)`, 'success');
       }
     }
 
