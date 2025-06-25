@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TodoMVP-Cricket</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzlL7OpV-H37vvwKX_qlm4ylXMd_Mu01-GcQ&s') no-repeat center center/cover;
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .overlay {
+      background: rgba(0, 0, 0, 0.8);
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      z-index: 1;
+    }
+    .center-box, .game-section {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 20px;
+    }
+    .dialog {
+      background: #002244;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px orange;
+      animation: fadeIn 0.8s ease-in-out;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      background: orange;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 16px;
+      color: white;
+    }
+    .game-section {
+      display: none;
+      background: rgba(0,0,0,0.9);
+      padding: 20px;
+    }
+    .task-history, .ongoing-tasks {
+      text-align: left;
+      max-width: 600px;
+      margin: 20px auto;
+      background: #003366;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 8px;
+      border: none;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .coin {
+      font-size: 100px;
+      display: inline-block;
+    }
+    @keyframes flip {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(1800deg); }
+    }
+    .flip {
+      animation: flip 1s ease-in-out forwards;
+    }
+
+    /* --- Shot Display Section --- */
+    #shotDisplaySection {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9); /* Dark background for focus */
+      z-index: 9998; /* Below batsman, above game */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none; /* Allows clicks to pass through when hidden */
+      transition: opacity 0.5s ease-in-out; /* Smooth fade in/out */
+    }
+    #shotDisplaySection.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #shotMessage {
+      font-size: 3em;
+      color: orange;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+      margin-bottom: 20px;
+    }
+
+    #batsmanAnimationContainer { /* Container for batsman and ball */
+      position: relative;
+      width: 200px; /* Adjust as needed */
+      height: 250px; /* Adjust as needed */
+      display: flex;
+      justify-content: center;
+      align-items: flex-end; /* Keep batsman at the bottom */
+    }
+
+    #batsmanImg {
+      width: 150px; /* Adjust based on your image size */
+      opacity: 0; /* Managed by JS for appearance/disappearance */
+      position: absolute;
+      bottom: 0;
+      /* IMPORTANT: Adjust this transform-origin for realistic bat pivot */
+      transform-origin: 50% 80%; /* Example: pivots from the hands/lower bat */
+      transition: opacity 0.2s;
+    }
+
+    /* Ball styling */
+    #cricketBall {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: red;
+      border-radius: 50%;
+      bottom: 150px; /* Initial position relative to batsman */
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0; /* Managed by JS */
+      z-index: 10000;
+    }
+
+    /* --- Batsman Animations --- */
+    @keyframes hitOne {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(-10deg); } /* Gentle nudge */
+      100% { transform: rotate(0deg); }
+    }
+    @keyframes hitTwo {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(20deg); } /* Slight deflection */
+      100% { transform: rotate(0deg); }
+    }
+    @keyframes hitFour {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(-45deg); } /* Driving shot swing */
+      100% { transform: rotate(0deg); }
+    }
+    @keyframes hitSix {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(60deg); } /* Powerful lofted swing */
+      75% { transform: rotate(-30deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    /* --- Ball Animations (Relative to its starting position) --- */
+    @keyframes ballOne {
+      0% { transform: translateX(-50%) translateY(0px) scale(1); opacity: 1; }
+      20% { transform: translateX(-50%) translateY(-20px) scale(0.9); } /* Ball coming in */
+      40% { transform: translateX(-50%) translateY(-5px) scale(1.1); } /* Impact */
+      60% { transform: translateX(-70%) translateY(-10px) scale(1); opacity: 1;} /* Gentle push */
+      100% { transform: translateX(-80%) translateY(-15px) scale(0.8); opacity: 0; }
+    }
+    @keyframes ballTwo {
+      0% { transform: translateX(-50%) translateY(0px) scale(1); opacity: 1; }
+      20% { transform: translateX(-50%) translateY(-20px) scale(0.9); }
+      40% { transform: translateX(-50%) translateY(-5px) scale(1.1); }
+      60% { transform: translateX(0%) translateY(-25px) scale(1); opacity: 1;} /* Side shot */
+      100% { transform: translateX(50%) translateY(-35px) scale(0.8); opacity: 0; }
+    }
+    @keyframes ballFour {
+      0% { transform: translateX(-50%) translateY(0px) scale(1); opacity: 1; }
+      20% { transform: translateX(-50%) translateY(-20px) scale(0.9); }
+      40% { transform: translateX(-50%) translateY(-5px) scale(1.1); }
+      60% { transform: translateX(100%) translateY(-40px) scale(1); opacity: 1;} /* Grounded drive */
+      100% { transform: translateX(250%) translateY(-50px) scale(0.7); opacity: 0; }
+    }
+    @keyframes ballSix {
+      0% { transform: translateX(-50%) translateY(0px) scale(1); opacity: 1; }
+      20% { transform: translateX(-50%) translateY(-20px) scale(0.9); }
+      40% { transform: translateX(-50%) translateY(-5px) scale(1.1); }
+      60% { transform: translateX(150%) translateY(-180px) scale(0.8); opacity: 1;} /* Lofted for six */
+      100% { transform: translateX(300%) translateY(-300px) scale(0.5); opacity: 0; }
+    }
+
+    /* Assign animation classes */
+    .animateOne { animation: hitOne 0.8s ease-out forwards; }
+    .animateTwo { animation: hitTwo 0.9s ease-out forwards; }
+    .animateFour { animation: hitFour 1s ease-out forwards; }
+    .animateSix { animation: hitSix 1.2s ease-out forwards; }
+
+    .ballAnimateOne { animation: ballOne 0.8s ease-out forwards; }
+    .ballAnimateTwo { animation: ballTwo 0.9s ease-out forwards; }
+    .ballAnimateFour { animation: ballFour 1s ease-out forwards; }
+    .ballAnimateSix { animation: ballSix 1.2s ease-out forwards; }
+
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="center-box">
+    <div id="tossDialog" class="dialog">
+      <h2>🏏 Welcome to TodoMVP Cricket!</h2>
+      <p>Choose your toss call:</p>
+      <button onclick="startCoinFlip('Heads')">Heads</button>
+      <button onclick="startCoinFlip('Tails')">Tails</button>
+      <div id="coin" class="coin">🪙</div>
+    </div>
+
+    <div id="resultDialog" class="dialog" style="display:none;">
+      <h2 id="tossResultText"></h2>
+      <p id="batBowlText" style="display:none;">Choose to Bat or Bowl:</p>
+      <div id="batBowlBtns" style="display:none;">
+        <button onclick="chooseRole('Batting')">Bat</button>
+        <button onclick="chooseRole('Bowling')">Bowl</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameSection" class="game-section">
+    <h2>🎯 Strategic Play</h2>
+    <div id="targetDisplay" style="font-size: 20px; margin: 10px auto;"></div>
+
+    <div style="max-width:600px;margin:auto;">
+      <label>New Delivery</label>
+      <input type="text" id="taskName" placeholder="e.g. Finish Python project">
+
+      <label>Difficulty</label>
+      <select id="difficulty" onchange="updateShots()">
+        <option value="Easy">Easy (1 Run)</option>
+        <option value="Intermediate">Intermediate (2 Runs)</option>
+        <option value="Hard">Hard (4 Runs)</option>
+        <option value="Expert">Expert (6 Runs)</option>
+      </select>
+
+      <label>Shot Type</label>
+      <select id="shotType"></select>
+
+      <label>Due Date</label>
+      <input type="date" id="dueDate">
+
+      <label>Estimated Time (HH:MM)</label>
+      <input type="time" id="targetTime">
+
+      <label>Notes</label>
+      <textarea id="notes" placeholder="Any extra info..."></textarea>
+
+      <button onclick="takeStrike()">Take Strike</button>
+    </div>
+
+    <div class="ongoing-tasks">
+      <h3>🕐 Ongoing Tasks</h3>
+      <ul id="ongoingList"></ul>
+    </div>
+
+    <div class="task-history" id="taskHistory">
+      <h3>📜 Task History</h3>
+      <ul id="historyList"></ul>
+    </div>
+  </div>
+
+  <div id="shotDisplaySection">
+    <h2 id="shotMessage"></h2>
+    <div id="batsmanAnimationContainer">
+      <img id="batsmanImg" src="https://freeimage.host/i/FuKmaku" alt="Batsman Placeholder">
+      <div id="cricketBall"></div>
+    </div>
+  </div>
+
+  <audio id="crowdSound" src="https://www.soundjay.com/human/crowd-cheer-01.mp3" preload="auto"></audio>
+
+  <script>
+    const shots = {
+      Easy: ["Forward Defense", "Backfoot Defense", "Top Off Side", "Top Leg Side", "Dab Shot", "French Cut"],
+      Intermediate: ["Hit", "Cut Shot", "Sweep Shot", "Paddle Sweep", "Leg Glance", "Backfoot Punch", "Late Cut"],
+      Hard: ["Straight Drive", "Cover Drive", "Square Drive", "On Drive", "Off Drive", "Upper Cut", "Reverse Sweep", "Lofted Drive", "Switch Hit", "Slog Sweep", "Periscope"],
+      Expert: ["Pull Shot", "Hook Shot", "Scoop Shot", "Ramp Shot", "Helicopter Shot", "Slog Shot", "No-look Shot"]
+    };
+
+    let taskId = 0;
+    let yourScore = 0;
+
+    // Get references to key elements
+    const tossDialog = document.getElementById('tossDialog');
+    const resultDialog = document.getElementById('resultDialog');
+    const gameSection = document.getElementById('gameSection');
+    const shotDisplaySection = document.getElementById('shotDisplaySection');
+    const batsmanImg = document.getElementById('batsmanImg');
+    const cricketBall = document.getElementById('cricketBall');
+    const crowdSound = document.getElementById('crowdSound');
+    const shotMessage = document.getElementById('shotMessage');
+    const yourScoreDisplay = document.getElementById('yourScore');
+
+    function startCoinFlip(call) {
+      const coin = document.getElementById('coin');
+      coin.classList.remove('flip');
+      void coin.offsetWidth; // Trigger reflow to restart animation
+      coin.classList.add('flip');
+
+      setTimeout(() => {
+        const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
+        coin.textContent = result === 'Heads' ? '🙂' : '🐍';
+
+        tossDialog.style.display = 'none';
+        resultDialog.style.display = 'block';
+        const resultText = document.getElementById('tossResultText');
+
+        if (result === call) {
+          resultText.innerText = `🎉 You won the toss (${result})!`;
+          document.getElementById('batBowlText').style.display = 'block';
+          document.getElementById('batBowlBtns').style.display = 'block';
+        } else {
+          resultText.innerText = `😞 You lost the toss (${result}). Opponent chose to Bat.`;
+          const opponentScore = Math.floor(Math.random() * 71) + 30;
+          setTimeout(() => {
+            alert(`You're Bowling! Opponent scored ${opponentScore} runs.`);
+            chooseRole("Batting", opponentScore);
+          }, 1500);
+        }
+      }, 1000);
+    }
+
+    function chooseRole(role, autoScore = null) {
+      document.querySelector('.center-box').style.display = 'none';
+      gameSection.style.display = 'block'; // Show game section
+      updateShots();
+
+      const score = autoScore !== null ? autoScore : (role === "Bowling" ? Math.floor(Math.random() * 71) + 30 : null);
+      if (score !== null) {
+        document.getElementById("targetDisplay").innerHTML = `
+          🎯 <b>Opponent's Score:</b> ${score} Runs<br>
+          <b>Your Target:</b> ${score + 1} Runs to Win<br>
+          <b>Your Current Score:</b> <span id="yourScore">0</span> Runs
+        `;
+      }
+    }
+
+    function updateShots() {
+      const diff = document.getElementById("difficulty").value;
+      const shotSel = document.getElementById("shotType");
+      shotSel.innerHTML = "";
+      shots[diff].forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        shotSel.appendChild(opt);
+      });
+    }
+
+    function getRuns(level) {
+      return { Easy: 1, Intermediate: 2, Hard: 4, Expert: 6 }[level];
+    }
+
+    function takeStrike() {
+      const name = document.getElementById("taskName").value;
+      const level = document.getElementById("difficulty").value;
+      const shot = document.getElementById("shotType").value;
+      const date = document.getElementById("dueDate").value;
+      const time = document.getElementById("targetTime").value;
+
+      if (!name || !date || !time) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      const now = new Date();
+      const deadline = new Date(`${date}T${time}`);
+      if (deadline <= now) {
+        alert("Please choose a future time.");
+        return;
+      }
+
+      const id = ++taskId;
+      const li = document.createElement("li");
+      li.id = `task-${id}`;
+      // Pass taskName and shot to completeTask for display
+      li.innerHTML = `📝 [${level}] ${name} (${shot}) <button onclick="completeTask(${id}, '${level}', '${name}', '${shot}')">Complete</button>`;
+      document.getElementById("ongoingList").appendChild(li);
+
+      const interval = setInterval(() => {
+        const current = new Date();
+        const taskElem = document.getElementById(`task-${id}`);
+        if (!taskElem) return clearInterval(interval);
+        if (current >= deadline && !taskElem.classList.contains("done")) {
+          taskElem.remove();
+          addToHistory(`[${level}] ${name} (${shot}) ❌ Failed`, 'fail');
+          alert(`⏰ Task failed. You missed a run!`);
+          clearInterval(interval);
+        }
+      }, 1000);
+    }
+
+    function completeTask(id, level, taskName, shotType) {
+      const taskElem = document.getElementById(`task-${id}`);
+      if (taskElem && !taskElem.classList.contains("done")) {
+        taskElem.classList.add("done"); // Mark as done to prevent double completion/failure
+        taskElem.remove(); // Remove from ongoing list immediately
+        const runs = getRuns(level);
+        yourScore += runs;
+        if (yourScoreDisplay) { // Check if element exists before updating
+          yourScoreDisplay.textContent = yourScore;
+        }
+        const text = `[${level}] ${taskName} (${shotType}) ✅ Success`;
+        addToHistory(text + ` (+${runs} runs)`, 'success');
+        triggerShotAnimation(runs, shotType); // Pass shotType to display
+      }
+    }
+
+    function addToHistory(text, type) {
+      const li = document.createElement("li");
+      li.textContent = text;
+      li.style.color = type === 'fail' ? 'tomato' : 'lightgreen';
+      document.getElementById("historyList").appendChild(li);
+    }
+
+    function triggerShotAnimation(runs, shotType) {
+      // Hide the main game section
+      gameSection.style.display = 'none';
+      // Show the shot display section with fade-in
+      shotDisplaySection.style.display = 'flex'; // Ensure it's display:flex before adding visible
+      void shotDisplaySection.offsetWidth; // Trigger reflow
+      shotDisplaySection.classList.add('visible');
+
+      // Update shot message
+      shotMessage.textContent = `${runs} Run${runs > 1 ? 's' : ''}! (${shotType})`;
+
+      // Reset batsman and ball animations
+      batsmanImg.className = '';
+      cricketBall.className = '';
+      void batsmanImg.offsetWidth; // Force reflow
+      void cricketBall.offsetWidth; // Force reflow
+
+      batsmanImg.style.opacity = 1; // Make batsman visible
+      cricketBall.style.opacity = 0; // Start ball hidden
+
+      // Apply batsman animation class
+      if (runs === 1) batsmanImg.classList.add("animateOne");
+      else if (runs === 2) batsmanImg.classList.add("animateTwo");
+      else if (runs === 4) batsmanImg.classList.add("animateFour");
+      else if (runs === 6) batsmanImg.classList.add("animateSix");
+
+      // Play crowd sound
+      crowdSound.currentTime = 0;
+      crowdSound.play();
+
+      // Trigger ball animation after a slight delay for delivery
+      const ballDelay = 100; // milliseconds
+      setTimeout(() => {
+        cricketBall.style.opacity = 1; // Make ball visible
+        if (runs === 1) cricketBall.classList.add("ballAnimateOne");
+        else if (runs === 2) cricketBall.classList.add("ballAnimateTwo");
+        else if (runs === 4) cricketBall.classList.add("ballAnimateFour");
+        else if (runs === 6) cricketBall.classList.add("ballAnimateSix");
+      }, ballDelay);
+
+      // Set timeout for the total display duration before fading out
+      const totalDisplayDuration = 3000; // 3 seconds for the entire celebration
+      const animationMaxDuration = 1200; // Maximum animation time for any shot/ball
+
+      setTimeout(() => {
+        // Ensure all animation classes are removed and elements are hidden
+        batsmanImg.className = '';
+        batsmanImg.style.opacity = 0;
+        cricketBall.className = '';
+        cricketBall.style.opacity = 0;
+
+        // Fade out the shot display section
+        shotDisplaySection.classList.remove('visible');
+        setTimeout(() => {
+          // After fade-out transition, hide the section entirely and show the game dashboard
+          shotDisplaySection.style.display = 'none';
+          gameSection.style.display = 'block';
+        }, 500); // This should match the CSS transition duration for opacity
+      }, Math.max(totalDisplayDuration, animationMaxDuration + ballDelay)); // Wait for both display time and animation completion
+    }
+  </script>
+</body>
+</html>
