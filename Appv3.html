@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cricket Task Manager - Strategic Play</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #0a192f, #1a2a6c, #0a192f);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 20px;
+      position: relative;
+    }
+    
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    header {
+      text-align: center;
+      padding: 20px 0;
+      margin-bottom: 20px;
+      border-bottom: 3px solid #ffcc00;
+    }
+    
+    header h1 {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(255, 204, 0, 0.7);
+    }
+    
+    header p {
+      font-size: 1.2rem;
+      max-width: 800px;
+      margin: 0 auto;
+      color: #e0e0e0;
+    }
+    
+    .panel {
+      background: rgba(0, 20, 40, 0.85);
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 204, 0, 0.3);
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s ease;
+    }
+    
+    .panel:hover {
+      transform: translateY(-5px);
+    }
+    
+    .panel h2 {
+      color: #ffcc00;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(255, 204, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .panel h2 i {
+      font-size: 1.4rem;
+    }
+    
+    /* Toss Section */
+    .toss-section {
+      text-align: center;
+      padding: 20px;
+      background: rgba(0, 30, 60, 0.8);
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .toss-options {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .coin {
+      font-size: 100px;
+      margin: 20px 0;
+      transition: transform 0.5s;
+      display: inline-block;
+      transform-style: preserve-3d;
+    }
+    
+    .coin.flipping {
+      animation: flip 1.5s ease-in-out;
+    }
+    
+    @keyframes flip {
+      0% { transform: rotateY(0deg); }
+      50% { transform: rotateY(1800deg); }
+      100% { transform: rotateY(3600deg); }
+    }
+    
+    /* Strategic Play Section */
+    .strategic-play {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    @media (max-width: 900px) {
+      .strategic-play {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Match Info */
+    .match-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+    }
+    
+    .scoreboard {
+      display: flex;
+      justify-content: space-between;
+      background: rgba(0, 30, 60, 0.9);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+      border: 2px solid #ffcc00;
+      width: 100%;
+    }
+    
+    .score-item {
+      text-align: center;
+      flex: 1;
+    }
+    
+    .score-label {
+      font-size: 0.9rem;
+      color: #a0aec0;
+      margin-bottom: 5px;
+    }
+    
+    .score-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #ffcc00;
+    }
+    
+    /* Task Form */
+    .task-form .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .task-form label {
+      display: block;
+      margin-bottom: 8px;
+      color: #ffcc00;
+      font-weight: 500;
+    }
+    
+    .task-form input, 
+    .task-form select, 
+    .task-form textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #4a5568;
+      background: rgba(0, 10, 20, 0.7);
+      color: white;
+      font-size: 1rem;
+    }
+    
+    .task-form input:focus, 
+    .task-form select:focus, 
+    .task-form textarea:focus {
+      outline: none;
+      border-color: #ffcc00;
+      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.2);
+    }
+    
+    .btn {
+      background: linear-gradient(45deg, #ff8c00, #ffcc00);
+      color: #002244;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 5px 15px rgba(255, 140, 0, 0.4);
+      width: 100%;
+      margin-top: 15px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(255, 140, 0, 0.6);
+    }
+    
+    .btn:active {
+      transform: translateY(1px);
+    }
+    
+    /* Task Lists */
+    .task-list {
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+    
+    .task-list::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .task-list::-webkit-scrollbar-track {
+      background: rgba(0, 10, 20, 0.5);
+      border-radius: 4px;
+    }
+    
+    .task-list::-webkit-scrollbar-thumb {
+      background: #ffcc00;
+      border-radius: 4px;
+    }
+    
+    .task-item {
+      background: rgba(0, 30, 60, 0.7);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-left: 4px solid #ffcc00;
+      transition: all 0.3s ease;
+    }
+    
+    .task-item:hover {
+      background: rgba(0, 40, 80, 0.8);
+      transform: translateX(5px);
+    }
+    
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .task-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #ffcc00;
+    }
+    
+    .task-runs {
+      font-size: 0.9rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(255, 204, 0, 0.2);
+    }
+    
+    .task-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: #a0aec0;
+      margin-top: 10px;
+    }
+    
+    .task-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    
+    .complete-btn {
+      background: rgba(76, 175, 80, 0.3);
+    }
+    
+    .complete-btn:hover {
+      background: rgba(76, 175, 80, 0.5);
+    }
+    
+    /* Animation Preview Area */
+    .animation-preview {
+      background: rgba(0, 10, 20, 0.8);
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 20px;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      border: 2px dashed rgba(255, 204, 0, 0.3);
+    }
+    
+    .preview-content {
+      text-align: center;
+      z-index: 2;
+    }
+    
+    .preview-title {
+      font-size: 2.5rem;
+      color: #ffcc00;
+      margin-bottom: 20px;
+    }
+    
+    .preview-desc {
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin: 0 auto 30px;
+      color: #e0e0e0;
+    }
+    
+    /* Animation Elements */
+    .cricket-ball {
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle at 30% 30%, #ffffff, #d32f2f);
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
+      z-index: 1;
+      display: none;
+    }
+    
+    .batsman {
+      position: absolute;
+      width: 80px;
+      height: 150px;
+      background: url('https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:jsxbwyr57fvqnhfthbaoh4ox/bafkreicih42ckfgken3u4zknc3sikd7jez4jugyzsmf6nm52eityiqemh4@jpeg') no-repeat center center/contain;
+      z-index: 1;
+      bottom: 50px;
+      display: none;
+    }
+    
+    .wicket {
+      position: absolute;
+      width: 10px;
+      height: 80px;
+      background: linear-gradient(to bottom, #8B4513, #A0522D);
+      border-radius: 5px;
+      z-index: 1;
+      display: none;
+      transform-origin: bottom;
+    }
+    
+    .wicket-top {
+      position: absolute;
+      width: 60px;
+      height: 10px;
+      background: linear-gradient(to right, #8B4513, #A0522D);
+      border-radius: 5px;
+      top: 0;
+      left: -25px;
+    }
+    
+    .trophy {
+      position: absolute;
+      font-size: 4rem;
+      color: gold;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+      z-index: 1;
+      display: none;
+    }
+    
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ffcc00;
+      border-radius: 50%;
+      z-index: 0;
+    }
+    
+    /* Animations */
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(10deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes moveLeftRight {
+      0% { left: 10%; }
+      50% { left: 70%; }
+      100% { left: 10%; }
+    }
+    
+    @keyframes moveUpDown {
+      0% { top: 20%; }
+      50% { top: 60%; }
+      100% { top: 20%; }
+    }
+    
+    @keyframes hitOne {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(-10deg); }
+      100% { transform: rotate(0deg); }
+    }
+    
+    @keyframes hitTwo {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(20deg); }
+      100% { transform: rotate(0deg); }
+    }
+    
+    @keyframes hitFour {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(-45deg); }
+      100% { transform: rotate(0deg); }
+    }
+    
+    @keyframes hitSix {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(60deg); }
+      75% { transform: rotate(-30deg); }
+      100% { transform: rotate(0deg); }
+    }
+    
+    @keyframes ballOne {
+      0% { transform: translateX(-50%) translateY(0px) scale(1); opacity: 1; }
+      20% { transform: translateX(-50%) translateY(-20px) scale(0.9); }
+      40% { transform: translateX(-50%) translateY(-5px) scale(1.1); }
+      60% { transform: translateX(-70%) translateY(-10px) scale(1); opacity: 1;}
+      100% { transform: translateX(-80%) translateY(-15px) scale(0.8); opacity: 0; }
+    }
+    
+    @keyframes ballTwo {
+      0% { transform: translateX(-50%) translateY(0px) scale(1); opacity: 1; }
+      20% { transform: translateX(-50%) translateY(-20px) scale(0.9); }
+      40% { transform: translateX(-50%) translateY(-5px) scale(1.1); }
+      60% { transform: translateX(0%) translateY(-25px) scale(1); opacity: 1;}
+      100% { transform: translateX(50%) translateY(-35px) scale(0.8); opacity: 0; }
+    }
+    
+    @keyframes ballFour {
+      0% { transform: translateX(-50%) translateY(0px) scale(1); opacity: 1; }
+      20% { transform: translateX(-50%) translateY(-20px) scale(0.9); }
+      40% { transform: translateX(-50%) translateY(-5px) scale(1.1); }
+      60% { transform: translateX(100%) translateY(-40px) scale(1); opacity: 1;}
+      100% { transform: translateX(250%) translateY(-50px) scale(0.7); opacity: 0; }
+    }
+    
+    @keyframes ballSix {
+      0% { transform: translateX(-50%) translateY(0px) scale(1); opacity: 1; }
+      20% { transform: translateX(-50%) translateY(-20px) scale(0.9); }
+      40% { transform: translateX(-50%) translateY(-5px) scale(1.1); }
+      60% { transform: translateX(150%) translateY(-180px) scale(0.8); opacity: 1;}
+      100% { transform: translateX(300%) translateY(-300px) scale(0.5); opacity: 0; }
+    }
+    
+    @keyframes wicketFall {
+      0% { transform: rotate(0); }
+      100% { transform: rotate(-45deg); }
+    }
+    
+    .floating {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    .pulsing {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .rotating {
+      animation: rotate 4s linear infinite;
+    }
+    
+    .moving-lr {
+      animation: moveLeftRight 6s linear infinite;
+    }
+    
+    .moving-ud {
+      animation: moveUpDown 5s ease-in-out infinite;
+    }
+    
+    .animateOne { animation: hitOne 0.8s ease-out forwards; }
+    .animateTwo { animation: hitTwo 0.9s ease-out forwards; }
+    .animateFour { animation: hitFour 1s ease-out forwards; }
+    .animateSix { animation: hitSix 1.2s ease-out forwards; }
+    
+    .ballAnimateOne { animation: ballOne 0.8s ease-out forwards; }
+    .ballAnimateTwo { animation: ballTwo 0.9s ease-out forwards; }
+    .ballAnimateFour { animation: ballFour 1s ease-out forwards; }
+    .ballAnimateSix { animation: ballSix 1.2s ease-out forwards; }
+    
+    .wicketFalling { animation: wicketFall 0.5s ease-out forwards; }
+    
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 30px 0 20px;
+      color: #a0aec0;
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(255, 204, 0, 0.2);
+      margin-top: 20px;
+    }
+    
+    .features {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    
+    .feature {
+      background: rgba(0, 20, 40, 0.7);
+      padding: 15px 20px;
+      border-radius: 10px;
+      min-width: 200px;
+      text-align: center;
+      border: 1px solid rgba(255, 204, 0, 0.2);
+    }
+    
+    .feature i {
+      font-size: 2rem;
+      color: #ffcc00;
+      margin-bottom: 10px;
+    }
+    
+    /* Game Controls */
+    .game-section {
+      display: none;
+    }
+    
+    .toss-section {
+      display: block;
+    }
+    
+    /* Fix for task actions */
+    .task-actions {
+      justify-content: center;
+    }
+    
+    /* Shot Display Overlay */
+    .shot-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    
+    .shot-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .shot-message {
+      font-size: 3em;
+      color: #ffcc00;
+      text-shadow: 0 0 20px rgba(255, 204, 0, 0.8);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .animation-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+    }
+    
+    /* Confetti effects */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      z-index: 0;
+      opacity: 0;
+    }
+    
+    @keyframes confetti-fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(500px) rotate(360deg); opacity: 0; }
+    }
+    
+    .confetti-animation {
+      animation: confetti-fall 2s ease-out forwards;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-baseball-ball"></i> Cricket Task Manager - Strategic Play</h1>
+      <p>Manage your tasks like a cricket pro! Complete tasks to score runs with strategic shot selection.</p>
+    </header>
+    
+    <!-- Toss Section -->
+    <div class="toss-section panel">
+      <h2><i class="fas fa-coins"></i> Toss Time</h2>
+      <p>Call your toss to start the game!</p>
+      <div class="toss-options">
+        <button class="btn" id="headsBtn"><i class="fas fa-heading"></i> Heads</button>
+        <button class="btn" id="tailsBtn"><i class="fas fa-paw"></i> Tails</button>
+      </div>
+      <div class="coin" id="coin">🪙</div>
+      <div id="tossResult" style="min-height: 30px; margin-top: 20px;"></div>
+      <div id="batBowlOptions" style="display: none; margin-top: 20px;">
+        <button class="btn" id="batBtn"><i class="fas fa-baseball-bat"></i> Bat</button>
+        <button class="btn" id="bowlBtn"><i class="fas fa-baseball-ball"></i> Bowl</button>
+      </div>
+    </div>
+    
+    <!-- Game Section (hidden until toss) -->
+    <div id="gameSection" class="game-section">
+      <div class="panel strategic-play">
+        <div class="match-info">
+          <h2><i class="fas fa-trophy"></i> Match Status</h2>
+          <p id="matchStatus">Match in progress</p>
+          <div class="scoreboard">
+            <div class="score-item">
+              <div class="score-label">Your Score</div>
+              <div class="score-value" id="yourScore">0</div>
+            </div>
+            <div class="score-item">
+              <div class="score-label">Overs</div>
+              <div class="score-value" id="overs">0.0</div>
+            </div>
+            <div class="score-item">
+              <div class="score-label">Target</div>
+              <div class="score-value" id="target">120</div>
+            </div>
+          </div>
+          <button class="btn" id="newMatchBtn" style="margin-top: 20px;">
+            <i class="fas fa-redo"></i> New Match
+          </button>
+        </div>
+        
+        <div class="task-form">
+          <h2><i class="fas fa-tasks"></i> Strategic Play</h2>
+          <div class="form-group">
+            <label for="taskName">New Delivery</label>
+            <input type="text" id="taskName" placeholder="E.g. Complete project report">
+          </div>
+          
+          <div class="form-group">
+            <label for="taskDifficulty">Difficulty (Runs)</label>
+            <select id="taskDifficulty" onchange="updateShotOptions()">
+              <option value="easy">Easy (1 Run)</option>
+              <option value="medium">Intermediate (2 Runs)</option>
+              <option value="hard">Hard (4 Runs)</option>
+              <option value="expert">Expert (6 Runs)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="shotType">Shot Type</label>
+            <select id="shotType">
+              <!-- Options will be populated dynamically -->
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="dueDate">Due Date</label>
+            <input type="date" id="dueDate">
+          </div>
+          
+          <div class="form-group">
+            <label for="targetTime">Estimated Time (HH:MM)</label>
+            <input type="time" id="targetTime">
+          </div>
+          
+          <div class="form-group">
+            <label for="taskNotes">Notes</label>
+            <textarea id="taskNotes" rows="3" placeholder="Any additional details..."></textarea>
+          </div>
+          
+          <button class="btn" id="addTaskBtn">
+            <i class="fas fa-plus"></i> Take Strike
+          </button>
+        </div>
+      </div>
+      
+      <div class="panel">
+        <h2><i class="fas fa-list-check"></i> Ongoing Tasks</h2>
+        <div class="task-list" id="ongoingTasks">
+          <!-- Tasks will be added here dynamically -->
+        </div>
+      </div>
+      
+      <div class="panel">
+        <h2><i class="fas fa-history"></i> Completed Tasks</h2>
+        <div class="task-list" id="completedTasks">
+          <!-- Completed tasks will appear here -->
+        </div>
+      </div>
+      
+      <div class="animation-preview">
+        <div class="preview-content">
+          <h2 class="preview-title">Shot Animation Preview</h2>
+          <p class="preview-desc">When you complete a task, the shot animation will play here based on your shot selection.</p>
+        </div>
+        
+        <!-- Animation elements -->
+        <div class="cricket-ball" id="cricketBall"></div>
+        <div class="batsman" id="batsman"></div>
+        <div class="wicket" id="wicket">
+          <div class="wicket-top"></div>
+        </div>
+      </div>
+    </div>
+    
+    <footer>
+      <div class="features">
+        <div class="feature">
+          <i class="fas fa-bolt"></i>
+          <h3>Strategic Play</h3>
+          <p>Choose shots based on task difficulty</p>
+        </div>
+        <div class="feature">
+          <i class="fas fa-running"></i>
+          <h3>Animated Shots</h3>
+          <p>See your shot animations when completing tasks</p>
+        </div>
+        <div class="feature">
+          <i class="fas fa-trophy"></i>
+          <h3>Score Runs</h3>
+          <p>Complete tasks to score runs and win the match</p>
+        </div>
+      </div>
+      <p>Cricket Task Manager - Strategic Play | Created with Cricket Enthusiasm</p>
+    </footer>
+  </div>
+  
+  <!-- Shot Display Overlay -->
+  <div class="shot-overlay" id="shotOverlay">
+    <div class="shot-message" id="shotMessage"></div>
+    <div class="animation-container">
+      <div class="batsman" id="overlayBatsman"></div>
+      <div class="cricket-ball" id="overlayBall"></div>
+    </div>
+  </div>
+  
+  <audio id="crowdSound" preload="auto"></audio>
+  <audio id="wicketSound" preload="auto" src="https://www.soundjay.com/misc/sounds/wood-hit-1.mp3"></audio>
+  
+  <script>
+    // Shot types by difficulty
+    const shots = {
+      easy: ["Forward Defense", "Backfoot Defense", "Top Off Side", "Top Leg Side", "Dab Shot", "French Cut"],
+      medium: ["Hit", "Cut Shot", "Sweep Shot", "Paddle Sweep", "Leg Glance", "Backfoot Punch", "Late Cut"],
+      hard: ["Straight Drive", "Cover Drive", "Square Drive", "On Drive", "Off Drive", "Upper Cut", "Reverse Sweep", "Lofted Drive", "Switch Hit", "Slog Sweep", "Periscope"],
+      expert: ["Pull Shot", "Hook Shot", "Scoop Shot", "Ramp Shot", "Helicopter Shot", "Slog Shot", "No-look Shot"]
+    };
+    
+    // Crowd sounds
+    const crowdSounds = {
+      one: "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3",
+      two: "https://www.soundjay.com/misc/sounds/bell-ringing-04.mp3",
+      four: "https://www.soundjay.com/misc/sounds/applause-01.mp3",
+      six: "https://www.soundjay.com/human/crowd-cheer-01.mp3"
+    };
+    
+    let taskId = 0;
+    let yourScore = 0;
+    let overs = 0;
+    let balls = 0;
+    let target = 120;
+    let matchStarted = false;
+    let activeTasks = {};
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize shot options
+      updateShotOptions();
+      
+      // Set target
+      document.getElementById('target').textContent = target;
+      
+      // Add task button event
+      document.getElementById('addTaskBtn').addEventListener('click', addTask);
+      
+      // New match button
+      document.getElementById('newMatchBtn').addEventListener('click', resetGame);
+      
+      // Toss buttons
+      document.getElementById('headsBtn').addEventListener('click', () => performToss('Heads'));
+      document.getElementById('tailsBtn').addEventListener('click', () => performToss('Tails'));
+      
+      // Bat/Bowl buttons
+      document.getElementById('batBtn').addEventListener('click', () => chooseRole('Batting'));
+      document.getElementById('bowlBtn').addEventListener('click', () => chooseRole('Bowling'));
+    });
+    
+    // Perform toss
+    function performToss(call) {
+      const coin = document.getElementById('coin');
+      const tossResult = document.getElementById('tossResult');
+      
+      coin.classList.add('flipping');
+      tossResult.textContent = '';
+      
+      setTimeout(() => {
+        coin.classList.remove('flipping');
+        const result = Math.random() > 0.5 ? 'Heads' : 'Tails';
+        
+        setTimeout(() => {
+          coin.textContent = result === 'Heads' ? '🙂' : '🐍';
+          if (call === result) {
+            tossResult.innerHTML = `<p style="color: #4CAF50; font-weight: bold;">You won the toss! Choose to bat or bowl.</p>`;
+            document.getElementById('batBowlOptions').style.display = 'block';
+          } else {
+            tossResult.innerHTML = `<p style="color: #F44336;">You lost the toss. Opponent chooses to bat.</p>`;
+            setTimeout(() => {
+              const opponentScore = Math.floor(Math.random() * 71) + 30;
+              alert(`You're Bowling! Opponent scored ${opponentScore} runs.`);
+              chooseRole("Batting", opponentScore);
+            }, 1500);
+          }
+        }, 1500);
+      }, 100);
+    }
+    
+    // Choose role
+    function chooseRole(role, autoScore = null) {
+      document.querySelector('.toss-section').style.display = 'none';
+      document.getElementById('gameSection').style.display = 'grid';
+      
+      updateShotOptions();
+      
+      const score = autoScore !== null ? autoScore : (role === "Bowling" ? Math.floor(Math.random() * 71) + 30 : null);
+      if (score !== null) {
+        document.getElementById("targetDisplay").innerHTML = `
+          🎯 <b>Opponent's Score:</b> ${score} Runs<br>
+          <b>Your Target:</b> ${score + 1} Runs to Win<br>
+          <b>Your Current Score:</b> <span id="yourScore">0</span> Runs
+        `;
+        target = score + 1;
+        document.getElementById('target').textContent = target;
+      }
+      
+      matchStarted = true;
+    }
+    
+    // Update shot options based on difficulty
+    function updateShotOptions() {
+      const difficulty = document.getElementById('taskDifficulty').value;
+      const shotSelect = document.getElementById('shotType');
+      
+      // Clear existing options
+      shotSelect.innerHTML = '';
+      
+      // Add new options based on difficulty
+      shots[difficulty].forEach(shot => {
+        const option = document.createElement('option');
+        option.value = shot;
+        option.textContent = shot;
+        shotSelect.appendChild(option);
+      });
+    }
+    
+    // Add a new task
+    function addTask() {
+      const taskName = document.getElementById('taskName').value;
+      const difficulty = document.getElementById('taskDifficulty').value;
+      const shotType = document.getElementById('shotType').value;
+      const dueDate = document.getElementById('dueDate').value;
+      const targetTime = document.getElementById('targetTime').value;
+      const notes = document.getElementById('taskNotes').value;
+      
+      if (!taskName || !dueDate || !targetTime) {
+        alert('Please fill all required fields');
+        return;
+      }
+      
+      // Create deadline timestamp
+      const deadline = new Date(`${dueDate}T${targetTime}`);
+      const now = new Date();
+      if (deadline <= now) {
+        alert('Please choose a future time');
+        return;
+      }
+      
+      // Calculate runs based on difficulty
+      const runs = {easy: 1, medium: 2, hard: 4, expert: 6}[difficulty];
+      
+      // Create task item
+      const taskItem = document.createElement('div');
+      taskItem.className = 'task-item';
+      taskItem.id = `task-${taskId}`;
+      taskItem.dataset.id = taskId;
+      taskItem.dataset.runs = runs;
+      taskItem.dataset.shotType = shotType;
+      
+      taskItem.innerHTML = `
+        <div class="task-header">
+          <div class="task-title">${taskName}</div>
+          <div class="task-runs">${runs} Runs (${shotType})</div>
+        </div>
+        <div class="task-desc">${notes || 'No additional notes'}</div>
+        <div class="task-meta">
+          <span><i class="far fa-calendar"></i> Due: ${dueDate} at ${targetTime}</span>
+          <span><i class="fas fa-baseball-ball"></i> Shot: ${shotType}</span>
+        </div>
+        <div class="task-actions">
+          <button class="action-btn complete-btn"><i class="fas fa-check"></i> Complete</button>
+        </div>
+      `;
+      
+      // Add to ongoing tasks
+      document.getElementById('ongoingTasks').prepend(taskItem);
+      
+      // Add event listeners
+      taskItem.querySelector('.complete-btn').addEventListener('click', function() {
+        const taskElement = this.closest('.task-item');
+        const id = taskElement.dataset.id;
+        const runs = parseInt(taskElement.dataset.runs);
+        const shotType = taskElement.dataset.shotType;
+        completeTask(id, runs, shotType);
+      });
+      
+      // Store task info for timeout monitoring
+      const currentTaskId = taskId;
+      activeTasks[currentTaskId] = {
+        deadline: deadline,
+        timeoutId: setTimeout(() => {
+          failTask(currentTaskId);
+        }, deadline - now)
+      };
+      
+      // Clear form
+      document.getElementById('taskName').value = '';
+      document.getElementById('taskNotes').value = '';
+      
+      // Increment task ID
+      taskId++;
+      
+      // Update balls and overs
+      updateOvers();
+    }
+    
+    // Complete a task
+    function completeTask(id, runs, shotType) {
+      const taskItem = document.getElementById(`task-${id}`);
+      if (!taskItem) return;
+      
+      // Clear timeout if exists
+      if (activeTasks[id]) {
+        clearTimeout(activeTasks[id].timeoutId);
+        delete activeTasks[id];
+      }
+      
+      // Remove action buttons
+      taskItem.querySelector('.task-actions').remove();
+      
+      // Add completion info
+      const meta = document.createElement('div');
+      meta.className = 'task-meta';
+      meta.innerHTML = `
+        <span><i class="fas fa-check-circle"></i> Completed: Today</span>
+        <span><i class="fas fa-star"></i> +${runs} Runs</span>
+      `;
+      taskItem.appendChild(meta);
+      
+      // Move to completed tasks
+      document.getElementById('completedTasks').prepend(taskItem);
+      
+      // Update score
+      yourScore += runs;
+      document.getElementById('yourScore').textContent = yourScore;
+      
+      // Play shot animation
+      playShotAnimation(runs, shotType);
+      
+      // Check if match is won
+      if (yourScore >= target) {
+        setTimeout(() => {
+          alert(`Congratulations! You won the match by scoring ${yourScore} runs!`);
+          resetGame();
+        }, 2000);
+      }
+    }
+    
+    // Fail a task
+    function failTask(id) {
+      const taskItem = document.getElementById(`task-${id}`);
+      if (taskItem) {
+        // Clear timeout if exists
+        if (activeTasks[id]) {
+          delete activeTasks[id];
+        }
+        
+        // Remove from DOM
+        taskItem.remove();
+        
+        // Add to history as failed
+        const historyList = document.getElementById('completedTasks');
+        const failedItem = document.createElement('div');
+        failedItem.className = 'task-item';
+        failedItem.innerHTML = `
+          <div class="task-header">
+            <div class="task-title">${taskItem.querySelector('.task-title').textContent}</div>
+            <div class="task-runs">Wicket!</div>
+          </div>
+          <div class="task-desc">${taskItem.querySelector('.task-desc').textContent}</div>
+          <div class="task-meta" style="color: #F44336;">
+            <span><i class="fas fa-times-circle"></i> Failed: Time Expired</span>
+            <span><i class="fas fa-skull"></i> Out!</span>
+          </div>
+        `;
+        historyList.prepend(failedItem);
+        
+        // Play wicket animation
+        playWicketAnimation();
+        
+        // Update overs
+        updateOvers();
+      }
+    }
+    
+    // Play shot animation
+    function playShotAnimation(runs, shotType) {
+      // Show overlay with animation
+      const shotOverlay = document.getElementById('shotOverlay');
+      const shotMessage = document.getElementById('shotMessage');
+      const overlayBatsman = document.getElementById('overlayBatsman');
+      const overlayBall = document.getElementById('overlayBall');
+      
+      // Reset elements
+      overlayBatsman.className = 'batsman';
+      overlayBall.className = 'cricket-ball';
+      overlayBatsman.style.display = 'block';
+      overlayBall.style.display = 'block';
+      
+      // Position elements
+      overlayBatsman.style.bottom = '50px';
+      overlayBatsman.style.left = '50%';
+      overlayBall.style.bottom = '120px';
+      overlayBall.style.left = '50%';
+      
+      // Set message
+      shotMessage.textContent = `${shotType} - ${runs} Run${runs > 1 ? 's' : ''}!`;
+      
+      // Show overlay
+      shotOverlay.classList.add('visible');
+      
+      // Apply animations based on runs
+      if (runs === 1) {
+        overlayBatsman.classList.add('animateOne');
+        overlayBall.classList.add('ballAnimateOne');
+        playCrowdSound('one');
+      } else if (runs === 2) {
+        overlayBatsman.classList.add('animateTwo');
+        overlayBall.classList.add('ballAnimateTwo');
+        playCrowdSound('two');
+      } else if (runs === 4) {
+        overlayBatsman.classList.add('animateFour');
+        overlayBall.classList.add('ballAnimateFour');
+        playCrowdSound('four');
+      } else if (runs === 6) {
+        overlayBatsman.classList.add('animateSix');
+        overlayBall.classList.add('ballAnimateSix');
+        playCrowdSound('six');
+        createConfetti();
+      }
+      
+      // Hide after animation
+      setTimeout(() => {
+        shotOverlay.classList.remove('visible');
+        overlayBatsman.style.display = 'none';
+        overlayBall.style.display = 'none';
+      }, 2000);
+    }
+    
+    // Create confetti effect for 6 runs
+    function createConfetti() {
+      const colors = ['#ffcc00', '#ff9900', '#ff6600', '#ff3300', '#ff0000'];
+      const container = document.getElementById('shotOverlay');
+      
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.top = `${Math.random() * 50}%`;
+        confetti.style.width = `${Math.random() * 10 + 5}px`;
+        confetti.style.height = `${Math.random() * 10 + 5}px`;
+        container.appendChild(confetti);
+        
+        // Apply animation
+        setTimeout(() => {
+          confetti.classList.add('confetti-animation');
+          confetti.style.opacity = '1';
+          
+          // Remove after animation
+          setTimeout(() => {
+            confetti.remove();
+          }, 2000);
+        }, 10);
+      }
+    }
+    
+    // Play wicket animation
+    function playWicketAnimation() {
+      const wicket = document.getElementById('wicket');
+      const ball = document.getElementById('cricketBall');
+      
+      // Reset and show wicket
+      wicket.style.display = 'block';
+      wicket.style.opacity = '1';
+      wicket.classList.value = '';
+      wicket.style.left = '50%';
+      wicket.style.bottom = '50px';
+      wicket.style.transform = 'translateX(-50%) rotate(0)';
+      
+      // Show ball
+      ball.style.display = 'block';
+      ball.style.opacity = '1';
+      ball.classList.value = '';
+      ball.style.bottom = '120px';
+      ball.style.left = '50%';
+      
+      // Play wicket sound
+      const wicketSound = document.getElementById('wicketSound');
+      wicketSound.currentTime = 0;
+      wicketSound.play();
+      
+      // Apply wicket falling animation
+      setTimeout(() => {
+        wicket.classList.add('wicketFalling');
+        ball.style.display = 'none';
+      }, 500);
+      
+      // Hide after animation
+      setTimeout(() => {
+        wicket.style.opacity = '0';
+        setTimeout(() => {
+          wicket.style.display = 'none';
+        }, 1000);
+      }, 2000);
+    }
+    
+    // Play crowd sound
+    function playCrowdSound(type) {
+      const crowdSound = document.getElementById('crowdSound');
+      crowdSound.src = crowdSounds[type];
+      crowdSound.play().catch(e => console.log("Audio play failed:", e));
+    }
+    
+    // Update overs
+    function updateOvers() {
+      balls++;
+      if (balls === 6) {
+        balls = 0;
+        overs++;
+      }
+      document.getElementById('overs').textContent = `${overs}.${balls}`;
+    }
+    
+    // Reset game
+    function resetGame() {
+      yourScore = 0;
+      overs = 0;
+      balls = 0;
+      taskId = 0;
+      target = 120 + Math.floor(Math.random() * 30);
+      matchStarted = false;
+      
+      document.getElementById('yourScore').textContent = yourScore;
+      document.getElementById('overs').textContent = `${overs}.${balls}`;
+      document.getElementById('target').textContent = target;
+      
+      // Clear task lists
+      document.getElementById('ongoingTasks').innerHTML = '';
+      document.getElementById('completedTasks').innerHTML = '';
+      
+      // Clear active tasks
+      for (let id in activeTasks) {
+        clearTimeout(activeTasks[id].timeoutId);
+      }
+      activeTasks = {};
+      
+      // Reset UI
+      document.querySelector('.toss-section').style.display = 'block';
+      document.getElementById('gameSection').style.display = 'none';
+      document.getElementById('tossResult').innerHTML = '';
+      document.getElementById('batBowlOptions').style.display = 'none';
+      document.getElementById('coin').textContent = '🪙';
+    }
+  </script>
+</body>
+</html>
