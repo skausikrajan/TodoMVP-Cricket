@@ -37,7 +37,7 @@
     }
     button {
       padding: 10px 20px;
-      margin: 10px;
+      margin: 10px 5px;
       background: orange;
       border: none;
       border-radius: 8px;
@@ -51,7 +51,7 @@
       background: rgba(0,0,0,0.9);
       padding: 20px;
     }
-    .task-history {
+    .task-history, .ongoing-tasks {
       text-align: left;
       max-width: 600px;
       margin: 20px auto;
@@ -136,6 +136,11 @@
       <button onclick="takeStrike()">Take Strike</button>
     </div>
 
+    <div class="ongoing-tasks">
+      <h3>🕐 Ongoing Tasks</h3>
+      <ul id="ongoingList"></ul>
+    </div>
+
     <div class="task-history" id="taskHistory">
       <h3>📜 Task History</h3>
       <ul id="historyList"></ul>
@@ -150,41 +155,37 @@
       Expert: ["Pull Shot", "Hook Shot", "Scoop Shot", "Ramp Shot", "Helicopter Shot", "Slog Shot", "No-look Shot"]
     };
 
-    let tasks = [];
-    let userCall = '', taskId = 0;
+    let taskId = 0;
 
     function startCoinFlip(call) {
-      userCall = call;
       const coinEl = document.getElementById('coin');
       coinEl.innerText = '🪙';
       coinEl.style.animation = 'flip 2s ease-in-out';
 
       setTimeout(() => {
-        coinEl.style.animation = ''; // Remove animation for reuse
+        coinEl.style.animation = '';
         const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
         coinEl.innerText = result === 'Heads' ? '🙂' : '🐍';
 
         setTimeout(() => {
           document.getElementById('tossDialog').style.display = 'none';
           document.getElementById('resultDialog').style.display = 'block';
-          const resultText = document.getElementById('tossResultText');
 
-          if (result === userCall) {
+          const resultText = document.getElementById('tossResultText');
+          if (result === call) {
             resultText.innerText = `🎉 You won the toss (${result})!`;
             document.getElementById('batBowlText').style.display = 'block';
             document.getElementById('batBowlBtns').style.display = 'block';
           } else {
             resultText.innerText = `😞 You lost the toss (${result}). Opponent chose to Bat.`;
-
             const opponentScore = Math.floor(Math.random() * 71) + 30;
-
             setTimeout(() => {
               alert(`You're Bowling! Opponent scored ${opponentScore} runs.`);
               chooseRole("Batting", opponentScore);
             }, 2000);
           }
         }, 1000);
-      }, 2000); // Coin flip duration
+      }, 2000);
     }
 
     function chooseRole(role, autoScore = null) {
@@ -192,20 +193,11 @@
       document.getElementById('gameSection').style.display = 'block';
       updateShots();
 
-      if (role === "Bowling") {
-        const opponentScore = Math.floor(Math.random() * 71) + 30;
-        const target = opponentScore + 1;
+      if (role === "Bowling" || autoScore !== null) {
+        const score = autoScore !== null ? autoScore : Math.floor(Math.random() * 71) + 30;
         document.getElementById("targetDisplay").innerHTML = `
-          🎯 <b>Opponent's Score:</b> ${opponentScore} Runs<br>
-          <b>Your Target:</b> ${target} Runs to Win
-        `;
-      }
-
-      if (autoScore !== null) {
-        const target = autoScore + 1;
-        document.getElementById("targetDisplay").innerHTML = `
-          🎯 <b>Opponent's Score:</b> ${autoScore} Runs<br>
-          <b>Your Target:</b> ${target} Runs to Win
+          🎯 <b>Opponent's Score:</b> ${score} Runs<br>
+          <b>Your Target:</b> ${score + 1} Runs to Win
         `;
       }
     }
@@ -230,7 +222,6 @@
       const name = document.getElementById("taskName").value;
       const level = document.getElementById("difficulty").value;
       const shot = document.getElementById("shotType").value;
-      const note = document.getElementById("notes").value;
       const date = document.getElementById("dueDate").value;
       const time = document.getElementById("targetTime").value;
 
@@ -240,37 +231,39 @@
       }
 
       const deadline = new Date(`${date}T${time}`);
-      const now = new Date();
       const id = ++taskId;
-
       const li = document.createElement("li");
-      li.textContent = `📝 [${level}] ${name} (${shot}) - In Progress`;
       li.id = `task-${id}`;
-      document.getElementById("historyList").appendChild(li);
+      li.innerHTML = `📝 [${level}] ${name} (${shot}) <button onclick="completeTask(${id}, '${level}')">Complete</button>`;
+      document.getElementById("ongoingList").appendChild(li);
 
       const interval = setInterval(() => {
         const current = new Date();
         const taskElem = document.getElementById(`task-${id}`);
         if (!taskElem) return clearInterval(interval);
-
         if (current >= deadline && !taskElem.classList.contains("done")) {
-          taskElem.textContent += " ❌ Failed";
-          taskElem.classList.add("done");
+          taskElem.remove();
+          addToHistory(`[${level}] ${name} (${shot}) ❌ Failed`, 'fail');
           alert(`⏰ Task failed. -${getRuns(level)} runs`);
           clearInterval(interval);
         }
       }, 1000);
+    }
 
-      setTimeout(() => {
-        if (document.getElementById(`task-${id}`)) {
-          const done = confirm(`Mark "${name}" as completed?`);
-          const taskElem = document.getElementById(`task-${id}`);
-          if (done && !taskElem.classList.contains("done")) {
-            taskElem.textContent += ` ✅ Success (+${getRuns(level)} runs)`;
-            taskElem.classList.add("done");
-          }
-        }
-      }, 1000 * 60 * 60); // Prompt after 1 hour
+    function completeTask(id, level) {
+      const taskElem = document.getElementById(`task-${id}`);
+      if (taskElem && !taskElem.classList.contains("done")) {
+        taskElem.remove();
+        const text = taskElem.innerText.replace("Complete", "✅ Success");
+        addToHistory(text + ` (+${getRuns(level)} runs)`, 'success');
+      }
+    }
+
+    function addToHistory(text, type) {
+      const li = document.createElement("li");
+      li.textContent = text;
+      li.style.color = type === 'fail' ? 'tomato' : 'lightgreen';
+      document.getElementById("historyList").appendChild(li);
     }
   </script>
 </body>
